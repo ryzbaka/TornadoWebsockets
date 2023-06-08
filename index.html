@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tornado Websocket</title>
+</head>
+<body>
+    <h1 id="username"></h1>
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button id="sendButton">Send</button>
+    <ul id="messageList"></ul>
+    <script>
+        function generateRandomString(length) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let randomString = '';
+
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * characters.length);
+                randomString += characters.charAt(randomIndex);
+            }
+
+            return randomString;
+        }
+        const client_id = generateRandomString(5) 
+        console.log(client_id)
+        const userNameDisplay = document.getElementById("username")
+        userNameDisplay.innerText=`User: ${client_id}`
+        const socket = new WebSocket(`ws://localhost:8888/ws?client_id=${encodeURIComponent(client_id)}`)
+        const messageList = document.getElementById("messageList")
+        const messageInput = document.getElementById("messageInput")
+        const sendButton = document.getElementById("sendButton")
+
+        socket.onopen = (event)=>{
+            console.log("Websocket connection established")
+        }
+        socket.onmessage=(event)=>{
+            const message = event.data
+            console.log(message)
+            const listItem = document.createElement("li")
+            listItem.textContent = message
+            messageList.appendChild(listItem) 
+        }
+        socket.onclose = (event)=>{
+            console.log("websocket connection closed.")
+        }
+        sendButton.addEventListener("click",()=>{
+            const message = messageInput.value
+            socket.send(JSON.stringify({"sender":client_id,"message":message}))
+            messageInput.value=""
+        })
+    </script>
+</body>
+</html>
